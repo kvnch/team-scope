@@ -1,3 +1,5 @@
+//Team SCOPE 2016
+
 'use strict';
 
 let Wit = null;
@@ -12,7 +14,7 @@ try {
 }
 
 const accessToken = (() => {
-  if (process.argv.length !== 3) {
+  if (process.argv.length <= 3) {
     console.log('usage: node examples/quickstart.js <wit-access-token>');
     process.exit(1);
   }
@@ -79,7 +81,9 @@ const actions = {
 //interactive(client);
 
 const client = new Wit({accessToken: process.argv[2]});
-client.message(process.argv[3], {})
+var prompt = process.argv[3]; 
+prompt = prompt.split('-').join(' ');
+client.message(prompt, {})
 .then((data) => {
   console.log('Yay, got Wit.ai response: ' + JSON.stringify(data));
 })
