@@ -1,5 +1,3 @@
-//Team SCOPE 2016
-
 'use strict';
 
 let Wit = null;

@@ -1,14 +1,27 @@
 'use strict';
 
-const Wit = require('node-wit').Wit;
+let Wit = null;
+let interactive = null;
+try {
+  // if running from repo
+  Wit = require('../').Wit;
+  interactive = require('../').interactive;
+} catch (e) {
+  Wit = require('node-wit').Wit;
+  interactive = require('node-wit').interactive;
+}
 
-const token = (() => {
+
+const accessToken = (() => {
   if (process.argv.length !== 3) {
-    console.log('usage: node examples/joke.js <wit-token>');
+    console.log('usage: node examples/joke.js <wit-access-token>');
     process.exit(1);
   }
   return process.argv[2];
 })();
+
+// Joke example
+// See https://wit.ai/patapizza/example-joke
 
 const allJokes = {
   chuck: [
@@ -37,33 +50,42 @@ const firstEntityValue = (entities, entity) => {
 };
 
 const actions = {
-  say: (sessionId, msg, cb) => {
-    console.log(msg);
-    cb();
+  send(request, response) {
+    console.log('sending...', JSON.stringify(response));
+    return Promise.resolve();
   },
-  merge: (context, entities, cb) => {
-    delete context.joke;
-    const category = firstEntityValue(entities, 'category');
-    if (category) {
-      context.cat = category;
-    }
-    const sentiment = firstEntityValue(entities, 'sentiment');
-    if (sentiment) {
-      context.ack = sentiment === 'positive' ? 'Glad you liked it.' : 'Hmm.';
-    } else {
-      delete context.ack;
-    }
-    cb(context);
+  merge({entities, context, message, sessionId}) {
+    return new Promise(function(resolve, reject) {
+      delete context.joke;
+      const category = firstEntityValue(entities, 'category');
+      if (category) {
+        context.cat = category;
+      }
+      const sentiment = firstEntityValue(entities, 'sentiment');
+      if (sentiment) {
+        context.ack = sentiment === 'positive' ? 'Glad you liked it.' : 'Hmm.';
+      } else {
+        delete context.ack;
+      }
+      return resolve(context);
+    });
   },
-  error: (sessionId, msg) => {
-    console.log('Oops, I don\'t know what to do.');
-  },
-  'select-joke': (context, cb) => {
-    const jokes = allJokes[context.cat || 'default'];
-    context.joke = jokes[Math.floor(Math.random() * jokes.length)];
-    cb(context);
+  ['select-joke']({entities, context}) {
+    return new Promise(function(resolve, reject) {
+      // const category = firstEntityValue(entities, 'category') || 'default';
+      // const sentiment = firstEntityValue(entities, 'sentiment');
+      // if (sentiment) {
+      //   context.ack = sentiment === 'positive' ? 'Glad you liked it.' : 'Hmm.';
+      // } else {
+      //   delete context.ack;
+      // }
+
+      const jokes = allJokes[context.cat || 'default'];
+      context.joke = jokes[Math.floor(Math.random() * jokes.length)];
+      return resolve(context);
+    });
   },
 };
 
-const client = new Wit(token, actions);
-client.interactive();
+const client = new Wit({accessToken, actions});
+interactive(client);
