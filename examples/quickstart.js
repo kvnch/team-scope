@@ -83,6 +83,6 @@ var prompt = process.argv[3];
 prompt = prompt.split('-').join(' ');
 client.message(prompt, {})
 .then((data) => {
-  console.log('Yay, got Wit.ai response: ' + JSON.stringify(data));
+  console.log('YAY, got Wit.ai response: ' + JSON.stringify(data));
 })
 .catch(console.error);
