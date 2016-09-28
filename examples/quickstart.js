@@ -73,6 +73,18 @@ const actions = {
       
     });
   },
+  move({context, entities}) {
+    return new Promise(function(resolve, reject) {
+      var direction = firstEntityValue(entities, 'direction')
+      if (direction) {
+        context.direction = direction;
+        delete context.missingDirection;
+      } else {
+        context.missingDirection = true;
+        delete context.direction;
+      }
+    });
+  }
 };
 
 //const client = new Wit({accessToken, actions});
