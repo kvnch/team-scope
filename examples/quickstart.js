@@ -12,7 +12,7 @@ try {
 }
 
 const accessToken = (() => {
-  if (process.argv.length <= 3) {
+  if (process.argv.length != 3) {
     console.log('usage: node examples/quickstart.js <wit-access-token>');
     process.exit(1);
   }
@@ -57,16 +57,51 @@ const actions = {
       
     });
   },
+  getPtDetails({context, entities}) {
+    return new Promise(function(resolve, reject) {
+      var datetime = firstEntityValue(entities, 'datetime')
+      if (datetime) {
+        context.promptDetails = 'ok'; 
+        delete context.missingOnset;
+      } else {
+        context.missingOnset = true;
+        delete context.promptDetails;
+      }
+      return resolve(context);
+      
+    });
+  },
+  greetBack({context, entities}) {
+    return new Promise(function(resolve, reject) {
+      var robot = firstEntityValue(entities, 'robot')
+      if (robot) {
+        context.promptGoal = true; 
+      } 
+      return resolve(context);
+      
+    });
+  },
+  farewellReturn({context, entities}) {
+    return new Promise(function(resolve, reject) {
+      var robot = firstEntityValue(entities, 'robot')
+      if (robot) {
+        context.goodbye = true; 
+      } 
+      return resolve(context);
+      
+    });
+  },
   searchObject({context, entities}) {
     return new Promise(function(resolve, reject) {
       var object = firstEntityValue(entities, 'object')
       var direction = firstEntityValue(entities, 'direction')
       var distance = firstEntityValue(entities, 'distance')
       var unit = firstEntityValue(entities, 'unit')
-      if (object) {
-        //context.validation = 'sunny in ' + location; 
-        delete context.missingLocation;
-      } else {
+      if (direction) {
+        context.validation = ' sunny in ' + object; 
+        delete context.missingDirection;
+      } else if (object && distance && unit) {
+      	context.missingDirection = true;
         delete context.validation;
       }
       return resolve(context);
@@ -87,14 +122,14 @@ const actions = {
   }
 };
 
-//const client = new Wit({accessToken, actions});
-//interactive(client);
+const client = new Wit({accessToken, actions});
+interactive(client);
 
-const client = new Wit({accessToken: process.argv[2]});
-var prompt = process.argv[3]; 
-prompt = prompt.split('-').join(' ');
-client.message(prompt, {})
-.then((data) => {
-  console.log('YAY, got Wit.ai response: ' + JSON.stringify(data));
-})
-.catch(console.error);
+//const client = new Wit({accessToken: process.argv[2]});
+//var prompt = process.argv[3]; 
+//prompt = prompt.split('-').join(' ');
+//client.message(prompt, {})
+//.then((data) => {
+//  console.log('YAY, got Wit.ai response: ' + JSON.stringify(data));
+//})
+//.catch(console.error);
